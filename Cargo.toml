@@ -1,0 +1,13 @@
+[package]
+name = "embedded-list"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+embedded-graphics = "0.8.1"
+
+[dev-dependencies]
+embedded-graphics-simulator = { version = "0.7.0" }
+
+[[examples]]
+basic = true
