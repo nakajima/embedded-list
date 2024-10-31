@@ -2,6 +2,10 @@
 name = "embedded-list"
 version = "0.1.0"
 edition = "2021"
+description = "A list component for embedded-graphics"
+license-file = "LICENSE"
+documentation = "README.md"
+repository = "https://github.com/nakajima/embedded-list"
 
 [dependencies]
 embedded-graphics = "0.8.1"
