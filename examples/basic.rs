@@ -100,8 +100,37 @@ fn main() -> Result<(), core::convert::Infallible> {
             BasicItem {
                 text: "Twelfth item".to_string(),
             },
+            BasicItem {
+                text: "Thirteenth item".to_string(),
+            },
+            BasicItem {
+                text: "Fourteenth item".to_string(),
+            },
+            BasicItem {
+                text: "Fifteenth item".to_string(),
+            },
+            BasicItem {
+                text: "Sixteenth item".to_string(),
+            },
+            BasicItem {
+                text: "Seventeenth item".to_string(),
+            },
+            BasicItem {
+                text: "Eighteenth item".to_string(),
+            },
+            BasicItem {
+                text: "Nineteenth item".to_string(),
+            },
+            BasicItem {
+                text: "Twentieth item".to_string(),
+            },
+            BasicItem {
+                text: "Twenty-first item".to_string(),
+            },
         ],
     };
+
+    let items_count = source.items().count();
 
     let top_simulator_padding = 16;
     let mut list = List::new(
@@ -123,6 +152,7 @@ fn main() -> Result<(), core::convert::Infallible> {
     let mut window = Window::new("Basic", &output_settings);
 
     'running: loop {
+        display.clear(Rgb565::BLACK).unwrap();
         list.draw(&mut display).unwrap();
         window.update(&display);
 
@@ -131,7 +161,14 @@ fn main() -> Result<(), core::convert::Infallible> {
                 SimulatorEvent::Quit => break 'running,
                 SimulatorEvent::KeyDown { keycode, .. } => {
                     match keycode {
-                        Keycode::Up => list.set_current(list.current() - 1),
+                        Keycode::Up => {
+                            let next = if list.current() == 0 {
+                                items_count - 1
+                            } else {
+                                list.current() - 1
+                            };
+                            list.set_current(next);
+                        }
                         Keycode::Down => list.set_current(list.current() + 1),
                         _ => (),
                     };
