@@ -1,8 +1,16 @@
-use crate::list_item::ListItem;
+use embedded_graphics::prelude::{DrawTarget, PixelColor, Point};
 
 pub trait ListSource {
-    type ListSourceItem: ListItem;
+    type C: PixelColor;
 
-    fn items(&self) -> impl Iterator<Item = Self::ListSourceItem>;
-    fn item(&self, index: usize) -> Option<Self::ListSourceItem>;
+    fn total_count(&self) -> u8;
+    fn height_for_index(&self, index: u8) -> i32;
+
+    fn draw<D: DrawTarget<Color = Self::C>>(
+        &self,
+        index: u8,
+        is_active: bool,
+        display: &mut D,
+        origin: Point,
+    ) -> Result<Point, D::Error>;
 }

@@ -9,36 +9,11 @@ use embedded_graphics_simulator::{
     sdl2::Keycode, BinaryColorTheme, OutputSettingsBuilder, SimulatorDisplay, SimulatorEvent,
     Window,
 };
-use embedded_list::{List, ListItem, ListSource};
+use embedded_list::{List, ListSource};
 
 #[derive(Clone)]
 struct BasicItem {
     text: String,
-}
-
-impl ListItem for BasicItem {
-    type C = Rgb565;
-
-    fn height(&self) -> i32 {
-        32
-    }
-
-    fn draw<D: DrawTarget<Color = Self::C>>(
-        &self,
-        display: &mut D,
-        origin: Point,
-        is_active: bool,
-    ) -> Result<Point, D::Error> {
-        if is_active {
-            let text_style = MonoTextStyle::new(&FONT_10X20, Rgb565::WHITE);
-            let text = Text::new(&self.text, origin, text_style);
-            text.draw(display)
-        } else {
-            let text_style = MonoTextStyle::new(&FONT_10X20, Rgb565::CSS_GRAY);
-            let text = Text::new(&self.text, origin, text_style);
-            text.draw(display)
-        }
-    }
 }
 
 struct Source {
@@ -46,17 +21,33 @@ struct Source {
 }
 
 impl ListSource for Source {
-    type ListSourceItem = BasicItem;
+    type C = Rgb565;
 
-    fn items(&self) -> impl Iterator<Item = Self::ListSourceItem> {
-        self.items.iter().cloned()
+    fn total_count(&self) -> u8 {
+        self.items.len() as u8
     }
 
-    fn item(&self, index: usize) -> Option<Self::ListSourceItem> {
-        if index < self.items.len() {
-            Some(self.items[index].clone())
+    fn height_for_index(&self, _index: u8) -> i32 {
+        32
+    }
+
+    fn draw<D: DrawTarget<Color = Self::C>>(
+        &self,
+        index: u8,
+        is_active: bool,
+        display: &mut D,
+        origin: Point,
+    ) -> Result<Point, D::Error> {
+        let item = &self.items[index as usize];
+
+        if is_active {
+            let text_style = MonoTextStyle::new(&FONT_10X20, Rgb565::WHITE);
+            let text = Text::new(&item.text, origin, text_style);
+            text.draw(display)
         } else {
-            None
+            let text_style = MonoTextStyle::new(&FONT_10X20, Rgb565::CSS_GRAY);
+            let text = Text::new(&item.text, origin, text_style);
+            text.draw(display)
         }
     }
 }
@@ -130,10 +121,10 @@ fn main() -> Result<(), core::convert::Infallible> {
         ],
     };
 
-    let items_count = source.items().count();
+    let items_count = source.total_count();
 
     let top_simulator_padding = 16;
-    let mut list = List::new(
+    let mut list = List::<Rgb565, Source>::new(
         Rectangle::new(Point::new(0, top_simulator_padding), Size::new(240, 532)),
         source,
     );

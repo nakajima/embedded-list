@@ -6,21 +6,21 @@ use embedded_graphics::{
     Drawable,
 };
 
-use crate::{list_item::ListItem, ListSource};
+use crate::ListSource;
 
 pub enum ListError {
     OutOfBounds,
 }
 
-pub struct List<C: PixelColor, I: ListItem<C = C>, S: ListSource<ListSourceItem = I>> {
+pub struct List<C: PixelColor, S: ListSource> {
     rect: Rectangle,
-    current: usize,
+    current: u8,
     scroll_offset: i32,
     source: S,
-    _phantom: PhantomData<(C, I)>,
+    _phantom: PhantomData<C>,
 }
 
-impl<C: PixelColor, I: ListItem<C = C>, S: ListSource<ListSourceItem = I>> List<C, I, S> {
+impl<C: PixelColor, S: ListSource> List<C, S> {
     pub fn new(rect: Rectangle, source: S) -> Self {
         Self {
             rect,
@@ -32,27 +32,26 @@ impl<C: PixelColor, I: ListItem<C = C>, S: ListSource<ListSourceItem = I>> List<
     }
 }
 
-impl<C: PixelColor, I: ListItem<C = C>, S: ListSource<ListSourceItem = I>> Drawable
-    for List<C, I, S>
-{
-    type Color = C;
+impl<C: PixelColor, S: ListSource> Drawable for List<C, S> {
+    type Color = S::C;
     type Output = ();
 
-    fn draw<D: DrawTarget<Color = C>>(&self, display: &mut D) -> Result<(), D::Error> {
+    fn draw<D: DrawTarget<Color = S::C>>(&self, display: &mut D) -> Result<(), D::Error> {
         let mut y_offset = self.rect.top_left.y - self.scroll_offset;
         let bottom_edge = self.rect.bottom_right().unwrap_or(self.rect.top_left).y;
 
-        for (i, item) in self.source.items().enumerate() {
-            let item_height = item.height();
+        for i in 0..self.source.total_count() {
+            let item_height = self.source.height_for_index(i);
             let item_top = y_offset;
             let item_bottom = y_offset + item_height;
 
             // Check if the item is within the visible area
             if item_bottom > self.rect.top_left.y && item_top < bottom_edge {
-                item.draw::<D>(
+                self.source.draw(
+                    i,
+                    self.current == i,
                     display,
                     Point::new(self.rect.top_left.x, y_offset),
-                    self.current == i,
                 )?;
             }
 
@@ -63,9 +62,9 @@ impl<C: PixelColor, I: ListItem<C = C>, S: ListSource<ListSourceItem = I>> Drawa
     }
 }
 
-impl<C: PixelColor, I: ListItem<C = C>, S: ListSource<ListSourceItem = I>> List<C, I, S> {
-    pub fn set_current(&mut self, index: usize) {
-        if index >= self.source.items().count() {
+impl<C: PixelColor, S: ListSource> List<C, S> {
+    pub fn set_current(&mut self, index: u8) {
+        if index >= self.source.total_count() {
             self.current = 0;
         } else {
             self.current = index;
@@ -80,8 +79,8 @@ impl<C: PixelColor, I: ListItem<C = C>, S: ListSource<ListSourceItem = I>> List<
         let mut current_item_top = 0;
         let mut current_item_bottom = 0;
 
-        for (i, item) in self.source.items().enumerate() {
-            let item_height = item.height();
+        for i in 0..self.source.total_count() {
+            let item_height = self.source.height_for_index(i);
 
             if i == self.current {
                 current_item_top = total_height;
@@ -104,7 +103,7 @@ impl<C: PixelColor, I: ListItem<C = C>, S: ListSource<ListSourceItem = I>> List<
         }
     }
 
-    pub fn current(&self) -> usize {
+    pub fn current(&self) -> u8 {
         self.current
     }
 }
