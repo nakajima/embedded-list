@@ -126,7 +126,7 @@ fn main() -> Result<(), core::convert::Infallible> {
     let top_simulator_padding = 16;
     let mut list = List::<Rgb565, Source>::new(
         Rectangle::new(Point::new(0, top_simulator_padding), Size::new(240, 532)),
-        source,
+        &source,
     );
 
     let mut display = SimulatorDisplay::<Rgb565>::new(Size::new(

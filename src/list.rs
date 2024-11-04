@@ -12,16 +12,16 @@ pub enum ListError {
     OutOfBounds,
 }
 
-pub struct List<C: PixelColor, S: ListSource> {
+pub struct List<'a, C: PixelColor, S: ListSource> {
     rect: Rectangle,
     current: u8,
     scroll_offset: i32,
-    source: S,
+    source: &'a S,
     _phantom: PhantomData<C>,
 }
 
-impl<C: PixelColor, S: ListSource> List<C, S> {
-    pub fn new(rect: Rectangle, source: S) -> Self {
+impl<'a, C: PixelColor, S: ListSource> List<'a, C, S> {
+    pub fn new(rect: Rectangle, source: &'a S) -> Self {
         Self {
             rect,
             current: 0,
@@ -32,7 +32,7 @@ impl<C: PixelColor, S: ListSource> List<C, S> {
     }
 }
 
-impl<C: PixelColor, S: ListSource> Drawable for List<C, S> {
+impl<'a, C: PixelColor, S: ListSource> Drawable for List<'a, C, S> {
     type Color = S::C;
     type Output = ();
 
@@ -62,7 +62,7 @@ impl<C: PixelColor, S: ListSource> Drawable for List<C, S> {
     }
 }
 
-impl<C: PixelColor, S: ListSource> List<C, S> {
+impl<'a, C: PixelColor, S: ListSource> List<'a, C, S> {
     pub fn set_current(&mut self, index: u8) {
         if index >= self.source.total_count() {
             self.current = 0;
